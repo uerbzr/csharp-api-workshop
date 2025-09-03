@@ -4,6 +4,11 @@ on:
   push:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+  checks: write
+
+
 jobs:
   build:
     runs-on: windows-latest
@@ -27,7 +32,7 @@ jobs:
 
       # 5) Run NUnit tests and output TRX results
       - name: Run NUnit tests
-        run: dotnet test --configuration Release --no-build --verbosity normal --filter "Name=PeopleTests" --logger "trx;LogFileName=test_results.trx"
+        run: dotnet test --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test_results.trx"
 
       # 6) Upload test results as artifact
       - name: Upload test results
