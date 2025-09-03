@@ -8,18 +8,41 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      # 1) Check out the source code so that the workflow can access it.
+      # 1) Check out the source code
       - uses: actions/checkout@v2
-      # 2) Set up the .NET CLI environment for the workflow to use.
+
+      # 2) Set up .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '9.0.x'
-      # 3) Restore the dependencies and tools of a project or solution.
+
+      # 3) Restore dependencies
       - name: Install dependencies
         run: dotnet restore
-      # 4) Build a project or solution and all of its dependencies.
+
+      # 4) Build project
       - name: Build
         run: dotnet build --configuration Release
+
+      # 5) Run NUnit tests and output TRX results
       - name: Run NUnit tests
-        run: dotnet test --configuration Release --no-build --verbosity normal --filter "Name=PeopleTests"
+        run: dotnet test --configuration Release --no-build --verbosity normal --filter "Name=PeopleTests" --logger "trx;LogFileName=test_results.trx"
+
+      # 6) Upload test results as artifact
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: '**/test_results.trx'
+
+      # 7) Report test results to GitHub UI
+      - name: Publish Test Report
+        uses: dorny/test-reporter@v1
+        if: always()  # ensures it runs even if tests fail
+        with:
+          name: 'PeopleTests Report'
+          path: '**/test_results.trx'
+          reporter: 'dotnet-trx'
+          list-suites: 'all'
+          list-tests: 'all'
